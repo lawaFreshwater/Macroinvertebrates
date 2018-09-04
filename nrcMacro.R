@@ -5,9 +5,7 @@
 ## ----------------------------------------------------------------------------
 ## Write Hilltop XML for Water Quality Data
 
-## SET LOCAL WORKING DIRECTORY
-od<-getwd()
-setwd("//file/herman/R/OA/08/02/2018/Water Quality/R/Macroinvert")
+setwd("H:/ericg/16666LAWA/2018/MacroInvertebrates/")
 
 
 ## Load libraries ------------------------------------------------
@@ -15,17 +13,19 @@ require(XML)     ### XML library to write hilltop XML
 require(dplyr)   ### dply library to manipulate table joins on dataframes
 require(RCurl)
 
-curdir<-getwd()
 
 ### Tasman
 
 ## To pull the data from hilltop server, I have a config csv that contains the 
 ## site and measurement names
 
-fname <- "nrcMacro_config.csv"
+fname <-"2018_csv_config_files/nrcMacro_config.csv"
 df <- read.csv(fname,sep=",",stringsAsFactors=FALSE)
-
-sites <- subset(df,df$Type=="Site")[,1]
+  siteTable=read.csv("H:/ericg/16666LAWA/2018/MacroInvertebrates/1.Imported/LAWA_Site_Table_Macro.csv",stringsAsFactors=FALSE)
+  
+  configsites <- subset(df,df$Type=="Site")[,2]
+  configsites <- as.vector(configsites)
+  sites = unique(siteTable$CouncilSiteID[siteTable$Agency=='NRC'])
 Measurements <- subset(df,df$Type=="Measurement")[,1]
 
 #function to create xml file from url. 
@@ -68,6 +68,18 @@ requestData <- function(url){
   }
 }
 
+ ld <- function(url){
+    (download.file(url,destfile="tmpnrc",method="wininet",quiet=T))
+    # pause(1)
+    xmlfile <- xmlParse(file = "tmpnrc")
+    unlink("tmpr")
+    error<-as.character(sapply(getNodeSet(doc=xmlfile, path="//Error"), xmlValue))
+    if(length(error)==0){
+      return(xmlfile)   # if no error, return xml data
+    } else {
+      return(NULL)
+    }
+  }
 
 ## ===============================================================================
 ## Getting Site Data 
@@ -83,6 +95,7 @@ con <- xmlOutputDOM("Hilltop")
 con$addTag("Agency", "TDC")
 
 for(i in 1:length(sites)){
+  cat(i,'out of',length(sites),'\n')
   
   for(j in 1:length(Measurements)){
     
@@ -93,14 +106,14 @@ for(i in 1:length(sites)){
                  "&From=1999-01-01",
                  "&To=2018-01-01",sep="")
     url <- gsub(" ", "%20", url)
-    cat(url,"\n")
+    # cat(url,"\n")
     
     
     #------------------------------------------
     
     
     
-    xmlfile <- requestData(url)
+    xmlfile <- ld(url)
     
     
     if(!is.null(xmlfile)){
@@ -217,15 +230,14 @@ for(i in 1:length(sites)){
       newNode <- DataNode
       replaceNodes(oldNode, newNode)
       
-      
-      
       con$addNode(m) 
       
     }
   }
 }
+
+
 cat("Saving: ",Sys.time()-tm,"\n")
-saveXML(con$value(), file="nrcmacro.xml")
+saveXML(con$value(), file=paste0("H:/ericg/16666LAWA/2018/MacroInvertebrates/1.Imported/",format(Sys.Date(),"%Y-%m-%d"),"/nrcMacro.xml"))
 cat("Finished",Sys.time()-tm,"\n")
 
-setwd(od)

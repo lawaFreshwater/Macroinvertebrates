@@ -7,7 +7,7 @@
 
 ## SET LOCAL WORKING DIRECTORY
 od<-getwd()
-setwd("//file/herman/R/OA/08/02/2018/Water Quality/R/Macroinvert")
+setwd("H:/ericg/16666LAWA/2018/MacroInvertebrates/")
 
 
 ## Load libraries ------------------------------------------------
@@ -22,10 +22,13 @@ curdir<-getwd()
 ## To pull the data from Marlborough hilltop server, I have a config csv that contains the 
 ## site and measurement names
 
-fname <- "mdcMacro_config.csv"
+fname <-"2018_csv_config_files/mdcMacro_config.csv"
 df <- read.csv(fname,sep=",",stringsAsFactors=FALSE)
-
-sites <- subset(df,df$Type=="Site")[,1]
+  siteTable=read.csv("H:/ericg/16666LAWA/2018/MacroInvertebrates/1.Imported/LAWA_Site_Table_Macro.csv",stringsAsFactors=FALSE)
+  
+  configsites <- subset(df,df$Type=="Site")[,2]
+  configsites <- as.vector(configsites)
+  sites = unique(siteTable$CouncilSiteID[siteTable$Agency=='MDC'])
 Measurements <- subset(df,df$Type=="Measurement")[,1]
 
 #function to create xml file from url. 
@@ -67,10 +70,18 @@ requestData <- function(url){
   }
 }
 
-
-deletenull <- function (p){
-  if(p)
-}
+ ld <- function(url){
+    (download.file(url,destfile="tmpmdc",method="wininet",quiet=T))
+    # pause(1)
+    xmlfile <- xmlParse(file = "tmpmdc")
+    unlink("tmpr")
+    error<-as.character(sapply(getNodeSet(doc=xmlfile, path="//Error"), xmlValue))
+    if(length(error)==0){
+      return(xmlfile)   # if no error, return xml data
+    } else {
+      return(NULL)
+    }
+  }
 
 ## ===============================================================================
 ## Getting Site Data 
@@ -87,6 +98,7 @@ con$addTag("Agency", "MDC")
 
 
 for(i in 1:length(sites)){
+  cat(i,'out of',length(sites),'\n')
   
   for(j in 1:length(Measurements)){
     
@@ -97,14 +109,14 @@ for(i in 1:length(sites)){
                  "&From=1990-01-01",
                  "&To=2018-01-01",sep="")
     url <- gsub(" ", "%20", url)
-    cat(url,"\n")
+    # cat(url,"\n")
     
     
     #------------------------------------------
     
     
     
-    xmlfile <- requestData(url)
+    xmlfile <- ld(url)
     
     
     if(!is.null(xmlfile)){
@@ -230,7 +242,7 @@ for(i in 1:length(sites)){
   }
 }
 cat("Saving: ",Sys.time()-tm,"\n")
-saveXML(con$value(), file="mdcMacro.xml")
+saveXML(con$value(), file=paste0("H:/ericg/16666LAWA/2018/MacroInvertebrates/1.Imported/",format(Sys.Date(),"%Y-%m-%d"),"/mdcMacro.xml"))
 cat("Finished",Sys.time()-tm,"\n")
 
 setwd(od)

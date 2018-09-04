@@ -18,7 +18,7 @@ require(RCurl)
 
 
 od<-getwd()
-setwd("//file/herman/R/OA/08/02/2018/Water Quality/R/Macroinvert")
+setwd("H:/ericg/16666LAWA/2018/MacroInvertebrates/")
 
 #function to either create full xml file or return xml file as NULL depending
 #on the result from the above funciton
@@ -47,11 +47,27 @@ ld <- function(url){
   return(xmlfile)
 }
 
-fname <- "wrcMacro_config.csv"
-df <- read.csv(fname,sep=",",stringsAsFactors=FALSE)
+ ld <- function(url){
+    (download.file(url,destfile="tmpwrc",method="wininet",quiet=T))
+    # pause(1)
+    xmlfile <- xmlParse(file = "tmpwrc")
+    unlink("tmpr")
+    error<-as.character(sapply(getNodeSet(doc=xmlfile, path="//Error"), xmlValue))
+    if(length(error)==0){
+      return(xmlfile)   # if no error, return xml data
+    } else {
+      return(NULL)
+    }
+  }
 
-sites <- subset(df,df$Type=="Site")[,1]
-sites <- as.vector(sites)
+fname <-"2018_csv_config_files/wrcMacro_config.csv"
+df <- read.csv(fname,sep=",",stringsAsFactors=FALSE)
+  siteTable=read.csv("H:/ericg/16666LAWA/2018/MacroInvertebrates/1.Imported/LAWA_Site_Table_Macro.csv",stringsAsFactors=FALSE)
+  
+  configsites <- subset(df,df$Type=="Site")[,1]
+  configsites <- as.vector(configsites)
+  sites = unique(siteTable$CouncilSiteID[siteTable$Agency=='WRC'])
+
 Measurements <- subset(df,df$Type=="Measurement")[,1]
 Measurements <- as.vector(Measurements)
 
@@ -61,6 +77,7 @@ require(dplyr)   ### dply library to manipulate table joins on dataframes
 require(XML)     ### XML library to write hilltop XML
 
 for(i in 1:length(sites)){
+  cat(i,'out of',length(sites),'\n')
   for(j in 1:length(Measurements)){
     
     
@@ -142,7 +159,7 @@ cat("Creating:",Sys.time()-tm,"\n")
 
 con <- xmlOutputDOM("Hilltop")
 con$addTag("Agency", "WRC")
-#saveXML(con$value(), file="out.xml")
+#saveXML(con$value(), file=paste0("H:/ericg/16666LAWA/2018/MacroInvertebrates/1.Imported/",format(Sys.Date(),"%Y-%m-%d"),"/out.xml")
 
 #-------
 
@@ -175,7 +192,7 @@ while(i<=max){
     con$addTag("Format", "#.###")
     con$closeTag() # ItemInfo
     con$closeTag() # DataSource
-    #saveXML(con$value(), file="out.xml")
+    #saveXML(con$value(), file=paste0("H:/ericg/16666LAWA/2018/MacroInvertebrates/1.Imported/",format(Sys.Date(),"%Y-%m-%d"),"/out.xml")
     
     # for the TVP and associated measurement water quality parameters
     con$addTag("Data", attrs=c(DateFormat="Calendar", NumItems="2"),close=FALSE)
@@ -242,5 +259,6 @@ while(i<=max){
   
 }
 cat("Saving: ",Sys.time()-tm,"\n")
-saveXML(con$value(), file="wrcMacro.xml")
+saveXML(con$value(), file=paste0("H:/ericg/16666LAWA/2018/MacroInvertebrates/1.Imported/",format(Sys.Date(),"%Y-%m-%d"),"/wrcMacro.xml"))
 cat("Finished",Sys.time()-tm,"\n")
+

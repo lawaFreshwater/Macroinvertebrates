@@ -10,60 +10,62 @@ message("-- A folder for todays date will be created and the imported files will
 #               1. Directories already exist
 #               1. R:/ drive not mapped to \\file\herman\R\OA\08\02
 
-try(shell(paste('mkdir "R:/2018/Water Quality/1.Imported/"',format(Sys.Date(),"%Y-%m-%d"),sep=""), translate=TRUE),silent = TRUE)
-try(shell(paste('mkdir "R:/2018/Water Quality/4.Analysis/"',format(Sys.Date(),"%Y-%m-%d"),sep=""), translate=TRUE),silent = TRUE)
+try(shell(paste('mkdir "H:/ericg/16666LAWA/2018/MacroInvertebrates/1.Imported/"',format(Sys.Date(),"%Y-%m-%d"),sep=""), translate=TRUE),silent = TRUE)
+# try(shell(paste('mkdir "H:/ericg/16666LAWA/2018/MacroInvertebrates/4.Analysis/"',format(Sys.Date(),"%Y-%m-%d"),sep=""), translate=TRUE),silent = TRUE)
 
 
 ## ----------------------------------------------------------------------------,
 ## Import Lake data to the "1.Imported" folder for 2018
 
 ## import destination will be in folder with todays date (created above)
-importDestination <- paste("//file/herman/R/OA/08/02/2018/Water Quality/1.Imported/",format(Sys.Date(),"%Y-%m-%d"),"/",sep="")
+importDestination <- paste("H:/ericg/16666LAWA/2018/MacroInvertebrates/1.Imported/",format(Sys.Date(),"%Y-%m-%d"),"/",sep="")
 
-# #Northland
- source("//file/herman/r/oa/08/02/2018/Water Quality/R/Macroinvert/loadNRC.R")
  
-# #Auckland
- source("//file/herman/r/oa/08/02/2018/Water Quality/R/Macroinvert/loadAC.R")
-# 
-# #Waikato
- source("//file/herman/r/oa/08/02/2018/Water Quality/R/Macroinvert/loadWRC.R")
-# 
-# #Bay of Plenty
-source("//file/herman/r/oa/08/02/2018/Water Quality/R/Macroinvert/loadBOP.R")
+# ACuckland X
+# source("H:/ericg/16666LAWA/2018/MacroInvertebrates/ACMacro.R")
+ 
+# BOPRCay of Plenty X
+# source("H:/ericg/16666LAWA/2018/MacroInvertebrates/BOPMacro.R")
 
-# #Gisborne
-source("//file/herman/r/oa/08/02/2018/Water Quality/R/Macroinvert/loadGDC.R")
+#ECanterbury
+source("H:/ericg/16666LAWA/2018/MacroInvertebrates/ECANmacro.R")
 
-#Taranaki
-source("//file/herman/r/oa/08/02/2018/Water Quality/R/Macroinvert/loadTRC.R")
+#ESouthland
+source("H:/ericg/16666LAWA/2018/MacroInvertebrates/ESmacro.R")
 
-#Hawkes Bay
-source("//file/herman/r/oa/08/02/2018/Water Quality/R/Macroinvert/loadHBRC.R")
+#GDCisborne
+source("H:/ericg/16666LAWA/2018/MacroInvertebrates/GDCMacro.R")
 
-#Horizons
-source("//file/herman/r/oa/08/02/2018/Water Quality/R/Macroinvert/loadHRC.R")
+#GWRCreater Wellington
+source("H:/ericg/16666LAWA/2018/MacroInvertebrates/GWRCMacro.R")
 
-#Greater Wellington
-source("//file/herman/r/oa/08/02/2018/Water Quality/R/Macroinvert/loadGW.R")
+#HBRCawkes Bay
+source("H:/ericg/16666LAWA/2018/MacroInvertebrates/HBRCMacro.R")
 
-#Nelson
-source("//file/herman/r/oa/08/02/2018/Water Quality/R/Macroinvert/loadNCC.R")
+#HRCorizons 
+source("H:/ericg/16666LAWA/2018/MacroInvertebrates/HRCMacro.R")
 
-#Tasman
-source("//file/herman/r/oa/08/02/2018/Water Quality/R/Macroinvert/loadTDC.R")
+#MDCarlborough
+source("H:/ericg/16666LAWA/2018/MacroInvertebrates/MDCMacro.R")
 
-#Marlborough
-source("//file/herman/r/oa/08/02/2018/Water Quality/R/Macroinvert/loadMDC.R")
+#NCCelson
+source("H:/ericg/16666LAWA/2018/MacroInvertebrates/NCCMacro.R")
 
-#Canterbury
-source("//file/herman/r/oa/08/02/2018/Water Quality/R/Macroinvert/loadECAN.R")
+#NRCorthland
+# source("H:/ericg/16666LAWA/2018/MacroInvertebrates/nrcMacro.R")
 
-#Otago
-source("//file/herman/r/oa/08/02/2018/Water Quality/R/Macroinvert/loadORC.R")
+#ORCtago
+source("H:/ericg/16666LAWA/2018/MacroInvertebrates/ORCMacro.R")
 
-#Southland
-source("//file/herman/r/oa/08/02/2018/Water Quality/R/Macroinvert/loadES.R")
+# TRCaranaki 
+source("H:/ericg/16666LAWA/2018/MacroInvertebrates/TRCMacro.R")
 
-#West Coast
-source("//file/herman/r/oa/08/02/2018/Water Quality/R/Macroinvert/loadWCRC.R")
+#TDCasman
+source("H:/ericg/16666LAWA/2018/MacroInvertebrates/TDCMacro.R")
+
+# WCRCest Coast 
+source("H:/ericg/16666LAWA/2018/MacroInvertebrates/WCRCMacro.R")
+
+# WRCaikato 
+ source("H:/ericg/16666LAWA/2018/MacroInvertebrates/WRCMacro.R")
+ 

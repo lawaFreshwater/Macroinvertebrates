@@ -9,7 +9,7 @@ rm(list = ls())
 
 ## SET LOCAL WORKING DIRECTORY
 od<-getwd()
-setwd("//file/herman/R/OA/08/02/2018/Water Quality/R/Macroinvert")
+setwd("H:/ericg/16666LAWA/2018/MacroInvertebrates/")
 
 
 ## Load libraries ------------------------------------------------
@@ -27,27 +27,32 @@ tab="\t"
 ## To pull the data from hilltop server, I have a config csv that contains the 
 ## site and measurement names
 
-fname <- "orcMacro_config.csv"
+fname <-"2018_csv_config_files/orcMacro_config.csv"
 df <- read.csv(fname,sep=",",stringsAsFactors=FALSE)
-
-sites <- subset(df,df$Type=="Site")[,1]
+  siteTable=read.csv("H:/ericg/16666LAWA/2018/MacroInvertebrates/1.Imported/LAWA_Site_Table_Macro.csv",stringsAsFactors=FALSE)
+  
+  configsites <- subset(df,df$Type=="Site")[,2]
+  configsites <- as.vector(configsites)
+  sites = unique(siteTable$CouncilSiteID[siteTable$Agency=='ORC'])
 Measurements <- subset(df,df$Type=="Measurement")[,1]
-
+if("WQ Sample"%in%Measurements){
+  Measurements = Measurements[-which(Measurements=="WQ Sample")]
+}
 
 #To get metadata into data frame
 
-mname <- "LawaMacroWater.csv"
-meta <- read.csv(mname,sep=",",stringsAsFactors=FALSE)
-
-metaMeasurements <- unique(meta$Measurement)
+# mname <- "LawaMacroWater.csv"
+# meta <- read.csv(mname,sep=",",stringsAsFactors=FALSE)
+# 
+# metaMeasurements <- unique(meta$Measurement)
 
 ## Manually matching order of measurement names in the measurement vector to the metaMeasurement vector 
 #metaMeasurements <- metaMeasurements[c(12,10,5,7,6,1,4,11)]
 
-meas <- cbind.data.frame(metaMeasurements,Measurements, stringsAsFactors=FALSE)
-names(meas) <- c("Measurement","MeasurementName")
-#join meas to meta
-meta <- merge(meta,meas,by="Measurement",all = TRUE)
+# meas <- cbind.data.frame(metaMeasurements,Measurements, stringsAsFactors=FALSE)
+# names(meas) <- c("Measurement","MeasurementName")
+# #join meas to meta
+# meta <- merge(meta,meas,by="Measurement",all = TRUE)
 
 
 
@@ -91,7 +96,18 @@ requestData <- function(url){
 }
 
 
-
+ ld <- function(url){
+    (download.file(url,destfile="tmporc",method="wininet",quiet=T))
+    # pause(1)
+    xmlfile <- xmlParse(file = "tmporc")
+    unlink("tmpr")
+    error<-as.character(sapply(getNodeSet(doc=xmlfile, path="//Error"), xmlValue))
+    if(length(error)==0){
+      return(xmlfile)   # if no error, return xml data
+    } else {
+      return(NULL)
+    }
+  }
 
 ## ===============================================================================
 ## Getting Site Data 
@@ -110,6 +126,7 @@ con$addTag("Agency", "ORC")
 #Adding in metadata
 
 for(i in 1:length(sites)){
+  cat(i,'out of',length(sites),'\n')
   for(j in 1:length(Measurements)){
     url <- paste("http://gisdata.orc.govt.nz/hilltop/WQGlobal.hts?service=Hilltop",
                  "&request=GetData",
@@ -118,15 +135,15 @@ for(i in 1:length(sites)){
                  "&From=1990-01-01",
                  "&To=2018-01-01",sep="")
     url <- gsub(" ", "%20", url)
-    cat(url,"\n")
+    # cat(url,"\n")
     
     #------------------------------------------
-    cat("Getting measurement",Measurements[j],"for",sites[i],".....\n")
     #Adding measurements values
     
-    xmlfile <- requestData(url)
+    xmlfile <- ld(url)
     
     if(!is.null(xmlfile)){
+    cat("Getting measurement",Measurements[j],"for",sites[i],".....\n")
       xmltop<-xmlRoot(xmlfile)
       
       m<-xmltop[['Measurement']]
@@ -148,28 +165,28 @@ for(i in 1:length(sites)){
       ansValue <- unlist(ansValue)
       
       # subset data based on site and measurement and sort on date
-      p <- subset(meta, meta$Sitename==sites[i] & meta$MeasurementName==Measurements[j])
-      if(nrow(p)!=0){
-        p$pDTz <- as.POSIXct(strptime(p$Dateandtime,format = "%d/%m/%Y",tz="GMT"))
-        p <- p[order(p$pDTz),]
-        
-        #Concatenate a column with all metadata parameters included and create vector
-        p$I2 <- paste("LAWAID", p$LAWAID, "Measurement", p$Measurement, 
-                      "ReportedLabValue", p$ReportedLabValue, "CollectionMethod", p$CollectionMethod, 
-                      "ProcessingMethod", p$ProcessingMethod, "CouncilSampleID", p$CouncilSampleID, 
-                      "ProcessedBy", p$ProcessedBy, "QUalityAssuranceMethod", p$QUalityAssuranceMethod,
-                      "QUalityAssuranceBy", p$QUalityAssuranceBy, "QualityCode", p$QualityCode, 
-                      "SampleFrequency", p$SampleFrequency, sep=tab)
-        
-        # remove unnecessary variables
-        p<-p[,c(1:4, 15:16)]
-        
-        ## converting xml to dataframe in order to match datatimes for wq measurement parameters
-        mdata <- xmlToDataFrame(m[['Data']],stringsAsFactors=FALSE)
-        mdata$pDTz <- as.POSIXct(strptime(mdata$T,format = "%Y-%m-%dT%H:%M:%S",tz="GMT"))
-        mdata <- merge(mdata,p,by="pDTz",all=TRUE)
-        mdata <- mdata[complete.cases(mdata$T),]
-      }
+      # p <- subset(meta, meta$Sitename==sites[i] & meta$MeasurementName==Measurements[j])
+      # if(nrow(p)!=0){
+      #   p$pDTz <- as.POSIXct(strptime(p$Dateandtime,format = "%d/%m/%Y",tz="GMT"))
+      #   p <- p[order(p$pDTz),]
+      #   
+      #   #Concatenate a column with all metadata parameters included and create vector
+      #   p$I2 <- paste("LAWAID", p$LAWAID, "Measurement", p$Measurement, 
+      #                 "ReportedLabValue", p$ReportedLabValue, "CollectionMethod", p$CollectionMethod, 
+      #                 "ProcessingMethod", p$ProcessingMethod, "CouncilSampleID", p$CouncilSampleID, 
+      #                 "ProcessedBy", p$ProcessedBy, "QUalityAssuranceMethod", p$QUalityAssuranceMethod,
+      #                 "QUalityAssuranceBy", p$QUalityAssuranceBy, "QualityCode", p$QualityCode, 
+      #                 "SampleFrequency", p$SampleFrequency, sep=tab)
+      #   
+      #   # remove unnecessary variables
+      #   p<-p[,c(1:4, 15:16)]
+      #   
+      #   ## converting xml to dataframe in order to match datatimes for wq measurement parameters
+      #   mdata <- xmlToDataFrame(m[['Data']],stringsAsFactors=FALSE)
+      #   mdata$pDTz <- as.POSIXct(strptime(mdata$T,format = "%Y-%m-%dT%H:%M:%S",tz="GMT"))
+      #   mdata <- merge(mdata,p,by="pDTz",all=TRUE)
+      #   mdata <- mdata[complete.cases(mdata$T),]
+      # }
       
       # loop through TVP nodes
       for(N in 1:xmlSize(m[['Data']])){  ## Number of Time series values
@@ -209,13 +226,13 @@ for(i in 1:length(sites)){
         }
         
         ## Manually adding supplied parameters
-        if((nrow(p)!=0)){
-        if(nchar(item2)==0){
-          item2 <- mdata$I2[N]
-        }else{
-          item2 <- paste(item2,tab,mdata$I2[N],tab,sep="")
-        }
-        }
+        # if((nrow(p)!=0)){
+        # if(nchar(item2)==0){
+        #   item2 <- mdata$I2[N]
+        # }else{
+        #   item2 <- paste(item2,tab,mdata$I2[N],tab,sep="")
+        # }
+        # }
         ## Writing I2 node
         addChildren(DataNode[[xmlSize(DataNode)]], newXMLNode(name = "I2",item2))
         
@@ -232,12 +249,12 @@ for(i in 1:length(sites)){
       replaceNodes(oldNode, newNode)
       
       con$addNode(m) 
-      cat("Completed measurement",Measurements[j],"for",sites[i],"\n\n")
+      cat("Completed measurement",Measurements[j],"for",sites[i],"\n")
     }
   }
 }
 cat("Saving: ",Sys.time()-tm,"\n")
-saveXML(con$value(), file="orcMacro.xml")
+saveXML(con$value(), file=paste0("H:/ericg/16666LAWA/2018/MacroInvertebrates/1.Imported/",format(Sys.Date(),"%Y-%m-%d"),"/orcMacro.xml"))
 cat("Finished",Sys.time()-tm,"\n")
 
 setwd(od)

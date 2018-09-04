@@ -3,8 +3,8 @@ ANALYSIS<-"Main routine"
 # Set working directory
 od<-getwd()
 rm(list = ls())
-setwd("//file/herman/r/oa/08/02/2018/Water Quality/R/Macroinvert")
-source("//file/herman/r/oa/08/02/2018/Water Quality/R/lawa_state/scripts/WQualityStateTrend/lawa_state_functions.R")
+setwd("H:/ericg/16666LAWA/2018/MacroInvertebrates")
+source("H:/ericg/16666LAWA/2018/WaterQuality/R/lawa_state/scripts/WQualityStateTrend/lawa_state_functions.R")
 
 
 message("Macro data pull")
