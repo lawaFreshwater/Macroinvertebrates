@@ -33,13 +33,13 @@ df <- read.csv(fname,sep=",",stringsAsFactors=FALSE)
 Measurements <- subset(df,df$Type=="Measurement")[,1]
 
 #function to create xml file from url. 
-ld <- function(url){
-  str<- tempfile(pattern = "file", tmpdir = tempdir())
-  (download.file(url,destfile=str,method="wininet"))
-  xmlfile <- xmlParse(file = str)
-  unlink(str)
-  return(xmlfile)
-}
+# ld <- function(url){
+#   str<- tempfile(pattern = "file", tmpdir = tempdir())
+#   (download.file(url,destfile=str,method="wininet"))
+#   xmlfile <- xmlParse(file = str)
+#   unlink(str)
+#   return(xmlfile)
+# }
 
 #function to determine which created xmls have an error message.
 #I/e/ the measurement value does not exist for that site. 
