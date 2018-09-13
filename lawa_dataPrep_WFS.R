@@ -100,6 +100,7 @@ cc <- function(file){
 ## Load csv with WFS addresses
 urls2018      <- "H:/ericg/16666LAWA/2018/WaterQuality/R/lawa_state/CouncilWFS.csv"  #H:\ericg\16666LAWA\2018\WaterQuality\R\lawa_state/
 urls          <- read.csv(urls2018,stringsAsFactors=FALSE)
+rm(urls2018)
 #urls$Agency[urls$Agency=="TDC"] <- "xTDC"   ## Commenting out Tasman DC due to Hilltop Server issues
 #urls2016      <- "//file/herman/R/OA/08/02/2016/Water Quality/R/lawa_state/CouncilWFS.csv"
 #urls          <- read.csv(urls2016,stringsAsFactors=FALSE)
@@ -114,7 +115,7 @@ urls          <- read.csv(urls2018,stringsAsFactors=FALSE)
 #url = "http://gis.horizons.govt.nz/arcgis/services/emar/MonitoringSiteReferenceData/MapServer/WFSServer?request=GetFeature&service=WFS&typename=MonitoringSiteReferenceData"
 
 # Config for data extract from WFS
-vars <- c("SiteID","CouncilSiteID","LawaSiteID","Macro","Region","Agency")
+vars <- c("SiteID","CouncilSiteID","LawaSiteID","Macro","Region","Agency","SWQLanduse","SWQAltitude")
 
 
 ### Even though the field names have been defined in the documentation, there are still differences in Field Names specified by each Council
@@ -127,6 +128,11 @@ vars <- c("SiteID","CouncilSiteID","LawaSiteID","Macro","Region","Agency")
 
 
 for(h in 1:length(urls$URL)){
+  if(urls$Agency[h]=='ES'){
+    vars[7]='SWQLandUse'
+  }else{
+    vars[7]='SWQLanduse'
+    }
   if(grepl("^x", urls$Agency[h])){
     next
   } 
@@ -291,6 +297,9 @@ for(h in 1:length(urls$URL)){
         if(!exists("siteTable")){
           siteTable<-as.data.frame(a,stringsAsFactors=FALSE)
         } else{
+          if(urls$Agency[h]=="ES"){
+            names(a)[7] <- "SWQLanduse" #ES needs capitalisation fixing
+          }
           siteTable<-rbind.data.frame(siteTable,a,stringsAsFactors=FALSE)
         }
         rm(a)
@@ -299,7 +308,7 @@ for(h in 1:length(urls$URL)){
     cat("\n---------------------------\n\n",sep="")
   }
 }
-
+rm(h,i,ANALYSIS,llSiteName,logfolder,lwq,module,nn,ns,od,pkgs,str,vars,wd,urls)
 #Load Auckland metadata separately.  Special little snowflakes.
 acMetaData=read.csv("H:/ericg/16666LAWA/2018/MacroInvertebrates/1.Imported/acRiverEcologyMetaDataC.csv",encoding='UTF-8',stringsAsFactors = F)
 names(acMetaData)=c("CouncilSiteID","LawaSiteID","Catchment","SiteID","Long","Lat","SWQAltitude","SWQLanduse","SWQFrequencyLast5","SWQFrequencyAll")
@@ -316,7 +325,10 @@ acMetaData$Long=latlon[,2]
 rm(latlon)
 
 
-siteTable <- merge(siteTable,acMetaData%>%select("SiteID","CouncilSiteID", "LawaSiteID","Macro","Region","Agency","Lat","Long" ),all=T)
+siteTable <- merge(siteTable,acMetaData%>%
+                     select("SiteID","CouncilSiteID", "LawaSiteID",
+                            "Macro","Region","Agency",
+                            "Lat","Long","SWQLanduse","SWQAltitude" ),all=T)
 rm(acMetaData)
 
 
@@ -382,6 +394,18 @@ table(siteTable$Agency)
 
 siteTable$Agency[siteTable$Agency=='ac'] <- 'AC'
 siteTable$Agency[siteTable$Agency%in%c("Christchurch", "Environment Canterbury")] <- 'ECAN'
+
+
+#Add a row for TDC's Kaituna site! Ultra-special little snowflake!
+if(!"Kaituna at 500m u-s Track start"%in%siteTable$CouncilSiteID){
+  tail(which(siteTable$Agency=='TDC'),1)
+  siteTableA=siteTable[1:tail(which(siteTable$Agency=='TDC'),1),]
+  siteTableB=siteTable[-(1:tail(which(siteTable$Agency=='TDC'),1)),]
+  newRow = data.frame(SiteID="Kaituna at 500m u-s Track start",CouncilSiteID="Kaituna at 500m u-s Track start",
+                      LawaSiteID="TDC-00048",Macro="true",Region="TDC",Agency="TDC",Lat=-40.71319654,Long=172.57206017,SWQLanduse='rural',SWQAltitude='Lowland')
+  siteTable=rbind.data.frame(siteTableA,newRow,siteTableB)
+  rm(siteTableA,siteTableB,newRow)
+}
 
 ## Output for next script
 write.csv(x = siteTable,file = "H:/ericg/16666LAWA/2018/MacroInvertebrates/1.Imported/LAWA_Site_Table_Macro.csv",row.names = F)
